@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Banking Application 🏦</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #cbbf1133, #2575fc);
+    }
+    .app {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      width: 650px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      text-align: center;
+      color: #fff;
+    }
+    h1 {
+      margin-bottom: 25px;
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+    input {
+      padding: 10px;
+      margin: 6px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      width: 200px;
+    }
+    button {
+      padding: 10px 16px;
+      margin: 6px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: transform 0.2s, background 0.3s;
+      color: #fff;
+    }
+    button:hover { transform: scale(1.05); }
+    .green { background: #00c851; }
+    .green:hover { background: #007e33; }
+    .blue { background: #33b5e5; }
+    .blue:hover { background: #0099cc; }
+    .red { background: #ff4444; }
+    .red:hover { background: #cc0000; }
+    .orange { background: #ffbb33; color:#222; }
+    .orange:hover { background: #ff8800; color:#fff; }
+    .log-box {
+      margin-top: 20px;
+      background: rgba(0,0,0,0.4);
+      padding: 15px;
+      border-radius: 10px;
+      height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      text-align: left;
+      white-space: pre-line;
+    }
+    .log-info { color: #cde7ff; }
+    .log-success { color: #b2ffb2; }
+    .log-warning { color: #ffdf80; }
+    .log-error { color: #ffb2b2; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Banking Application 🏦</h1>
+
+    <input type="text" id="username" placeholder="Enter user name">
+    <button class="blue" onclick="registerUser()">Register User</button><br>
+
+    <input type="number" id="amount" placeholder="Enter amount" value="100">
+    <button class="green" onclick="deposit()">Deposit</button>
+    <button class="red" onclick="withdraw()">Withdraw</button>
+    <button class="orange" onclick="transfer()">Transfer</button>
+    <button class="blue" onclick="loan()">Loan</button><br>
+    <button class="green" onclick="calculateInterest()">Calculate Interest</button>
+    <button class="red" onclick="undo()">Undo Last Action</button>
+
+    <div class="log-box" id="logArea"></div>
+  </div>
+
+<script>
+let user = null;
+let balance = 1000;
+let lastAction = null;
+
+function log(msg, type="info") {
+  const logArea = document.getElementById("logArea");
+  const div = document.createElement("div");
+  div.className = "log-" + type;
+  div.textContent = msg;
+  logArea.appendChild(div);
+  logArea.scrollTop = logArea.scrollHeight;
+}
+
+function getAmount() {
+  const value = document.getElementById("amount").value;
+  const amount = parseFloat(value);
+  if (isNaN(amount) || amount <= 0) {
+    log("⚠️ Please enter a valid amount.", "warning");
+    return null;
+  }
+  return amount;
+}
+
+function registerUser() {
+  const name = document.getElementById("username").value.trim();
+  if(name) {
+    user = name;
+    log(`User '${user}' registered as an observer.`, "info");
+  } else {
+    log("⚠️ Please enter a user name.", "warning");
+  }
+}
+
+function deposit() {
+  if(!user) return log("⚠️ Register a user first.", "warning");
+  const amount = getAmount();
+  if(amount) {
+    balance += amount;
+    lastAction = {type: "deposit", amount};
+    log(`${user} notified: Deposited ${amount}, New Balance: ${balance}`, "success");
+  }
+}
+
+function withdraw() {
+  if(!user) return log("⚠️ Register a user first.", "warning");
+  const amount = getAmount();
+  if(amount) {
+    balance -= amount;
+    lastAction = {type: "withdraw", amount};
+    log(`${user} notified: Withdrew ${amount}, New Balance: ${balance}`, "success");
+  }
+}
+
+function transfer() {
+  if(!user) return log("⚠️ Register a user first.", "warning");
+  const amount = getAmount();
+  if(amount) {
+    balance -= amount;
+    lastAction = {type: "transfer", amount};
+    log(`${user} notified: Transferred ${amount}, New Balance: ${balance}`, "info");
+  }
+}
+
+function loan() {
+  if(!user) return log("⚠️ Register a user first.", "warning");
+  const amount = getAmount();
+  if(amount) {
+    balance += amount;
+    lastAction = {type: "loan", amount};
+    log(`${user} notified: Loan taken ${amount}, New Balance: ${balance}`, "success");
+  }
+}
+
+function calculateInterest() {
+  if(!user) return log("⚠️ Register a user first.", "warning");
+  const interest = (balance * 0.04).toFixed(2);
+  log(`Interest calculated: ${interest}`, "info");
+}
+
+function undo() {
+  if(lastAction && user) {
+    if(lastAction.type === "deposit") {
+      balance -= lastAction.amount;
+    } else if(lastAction.type === "withdraw" || lastAction.type === "transfer") {
+      balance += lastAction.amount;
+    } else if(lastAction.type === "loan") {
+      balance -= lastAction.amount;
+    }
+    log("Last action undone.", "error");
+    lastAction = null;
+  } else {
+    log("⚠️ No action to undo.", "warning");
+  }
+}
+</script>
+</body>
+</html>
